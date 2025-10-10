@@ -49,16 +49,17 @@ fem_COM <- setNames(as.numeric(FemurSub$Fem_COM),rownames(FemurSub))
 
 # Anc State Rec -----------------------------------------------------------
 
+# plot distribution of traits on tree
 corHMM.data <- InData[c(1,5,4)]
 plot(tree, show.tip.label = FALSE)
 tiplabels(pch = 16, col = col_habitat[corHMM.data[,2]], cex = 0.75)
 tiplabels(pch = 16, col = col_life[corHMM.data[,3]], cex = 0.75, offset = 2.5)
 
 # ## no dual transitions
-RunModels(phy = tree, data = corHMM.data, dual = FALSE, name = "corModelSet.StewartWiens.Rsave")
+# RunModels(phy = tree, data = corHMM.data, dual = FALSE, name = "corModelSet.StewartWiens.Rsave")
 
 # ## if we want to allow dual transitions
-RunModels(phy = tree, data = corHMM.data, dual = TRUE, name = "corModelSet.DUAL.StewartWiens.Rsave")
+# RunModels(phy = tree, data = corHMM.data, dual = TRUE, name = "corModelSet.DUAL.StewartWiens.Rsave")
 
 load("corModelSet.StewartWiens.Rsave")
 CorRes_1 <- CorRes_i
@@ -83,8 +84,8 @@ MK_5state; plotMKmodel(MK_5state)
 #5: 2_1 T_dd
 
 # run simmap with best fitting model paramters
-simmap <- makeSimmap(tree=tree, data=MK_5state$data, model=MK_5state$solution, rate.cat= MK_5state$rate.cat, nSim=1000)
-saveRDS(simmap, file = "corHMM.simmap.StewartWiens.RDS") # save simmap
+# simmap <- makeSimmap(tree=tree, data=MK_5state$data, model=MK_5state$solution, rate.cat= MK_5state$rate.cat, nSim=1000)
+# saveRDS(simmap, file = "corHMM.simmap.StewartWiens.RDS") # save simmap
 simmap <- readRDS("corHMM.simmap.StewartWiens.RDS") # load simmap
 
 ## summarize simmap
@@ -105,20 +106,12 @@ for(i in 1:(length(obj)-1)){
 nodelabels(pie = pd$ace[,c(2,1,3,4,5)], piecol = col_habitatlife, cex = 0.4)
 tiplabels(pch = shape_habitatlife[InData[tree$tip.label,"HabitatLife"]], bg = col_habitatlife[InData[tree$tip.label,"HabitatLife"]], cex = 1.2)
 
-# subset simmap to femur data
-simmap <- readRDS("corHMM.simmap.StewartWiens.RDS")
-for (i in 1:length(simmap)) {
-  simmap[[i]] <- drop.tip(simmap[[i]],setdiff(simmap[[i]]$tip.label, fem.tree$tip.label))
-}
-saveRDS(simmap,"fem.corHMM.simmap.StewartWiens.RDS")
-
 
 # Plot 3D GMM -------------------------------------------------------------
 
 # run PCAs
 hum.pca <- gm.prcomp(hum.gpa$coords, phy = hum.tree, align.to.phy = F)
 fem.pca <- gm.prcomp(fem.gpa$coords, phy = fem.tree, align.to.phy = F)
-
 
 # plot the 3D GMM PCAs for figure 2
 par(mfrow = c(2,2),mar = c(4, 4, 1, 1))
@@ -142,44 +135,44 @@ par(mfrow=c(1,1))
 
 # Plot Internal Traits ----------------------------------------------------
 
+# plot the internal traits for figure 3
 #HUMERUS SMA
-hic <- ggplot(HumerusSub,aes(y = Hum_SMA, x = HabitatLife)) + 
+hic <- ggplot(HumerusSub,aes(y = (Hum_SMA), x = HabitatLife)) + 
   geom_boxplot(outlier.alpha = 0, aes(fill = HabitatLife))+
   geom_point(size = 2.5,position = position_jitter(0.25), alpha = 1, aes(shape = HabitatLife, fill = HabitatLife))+
   scale_shape_manual(values = c(24,21,21,21,22))+
-  ylim(1,2.73)+
+  ylim(1,2.58)+
   labs(y = "Stiffness", x = "")+
   scale_fill_manual(values = col_habitatlife)+ theme_classic() 
 
 #FEMUR SMA
-fic <- ggplot(FemurSub,aes(y = Fem_SMA, x = HabitatLife, fill = HabitatLife,)) + 
+fic <- ggplot(FemurSub,aes(y = (Fem_SMA), x = HabitatLife, fill = HabitatLife,)) + 
   geom_boxplot(outlier.alpha = 0)+
   geom_point(size = 2.5,position = position_jitter(0.25), alpha = 1, aes(shape = HabitatLife,fill = HabitatLife))+
   scale_shape_manual(values = c(24,21,21,21,22))+
-  ylim(1,2.73)+
+  ylim(1,2.58)+
   labs(y = "Stiffness")+
   scale_fill_manual(values = col_habitatlife)+ theme_classic() 
 
 # HUMERUS COM
-hcc <- ggplot(HumerusSub,aes(y = Hum_COM, x = HabitatLife, fill = HabitatLife)) + 
+hcc <- ggplot(HumerusSub,aes(y = (Hum_COM), x = HabitatLife, fill = HabitatLife)) + 
   geom_boxplot(outlier.alpha = 0)+
   geom_point(size = 2.5,position = position_jitter(0.25), alpha = 1, aes(shape = HabitatLife,fill = HabitatLife))+
   scale_shape_manual(values = c(24,21,21,21,22))+
-  ylim(0.6,1.001)+
+  ylim(0.6,1.01)+
   labs(y = "Density")+
   scale_fill_manual(values = col_habitatlife)+ theme_classic() 
 
 # FEMUR COM
-fcc <- ggplot(FemurSub,aes(y = Fem_COM, x = HabitatLife, fill = HabitatLife)) + 
+fcc <- ggplot(FemurSub,aes(y = (Fem_COM), x = HabitatLife, fill = HabitatLife)) + 
   geom_boxplot(outlier.alpha = 0)+
   geom_point(size = 2.5,position = position_jitter(0.25), alpha = 1, aes(shape = HabitatLife,fill = HabitatLife))+
   scale_shape_manual(values = c(24,21,21,21,22))+
-  ylim(0.6,1.001)+
+  ylim(0.6,1.01)+
   labs(y = "Density")+
   scale_fill_manual(values = col_habitatlife)+ theme_classic() 
 
 hic + fic + hcc + fcc & theme(legend.position = "none")
-
 
 # ANOVAs ------------------------------------------------------------------
 ## External Shape --------------------------------------------------------
@@ -191,12 +184,13 @@ summary(lm5)
 
 # to compare means between groups
 null <-  procD.pgls(hum.gpa$coords~ log(HumerusSub$SVL), data = HumerusSub,phy = hum.tree)
-p <- summary(pairwise(lm5, null, groups = HumerusSub$HabitatLife))
+p <- summary(pairwise(lm5, null, groups = HumerusSub$HabitatLife));p
 
 # to compare slopes...
 null <-  procD.pgls(hum.gpa$coords~ log(HumerusSub$SVL)+(HabitatLife), data = HumerusSub,phy = hum.tree)
-p <- summary(pairwise(lm5, null, groups = HumerusSub$HabitatLife, covariate = log(HumerusSub$SVL)))
+p <- summary(pairwise(lm5, null, groups = HumerusSub$HabitatLife, covariate = log(HumerusSub$SVL)));p
 
+# plot allometry
 allom <- plotAllometry(lm5, HumerusSub$SVL, logsz = T, method = "PredLine", pch = 21, 
                        bg = col_habitatlife[as.factor(HumerusSub$HabitatLife)])
 
@@ -212,6 +206,7 @@ p <- summary(pairwise(lm5, null, groups = HumerusSub[FemurSub$Species,"HabitatLi
 null <-  procD.pgls(hum.gpa$coords[,,FemurSub$Species]~ log(SVL)+(HabitatLife), data = HumerusSub[FemurSub$Species,],phy = fem.tree)
 p <- summary(pairwise(lm5, null, groups = HumerusSub[FemurSub$Species,"HabitatLife"], covariate = log(HumerusSub[FemurSub$Species,"SVL"])))
 
+# plot allometry
 allom <- plotAllometry(lm5, HumerusSub[FemurSub$Species,"SVL"], logsz = T, method = "CAC", pch = 21, 
                        bg = col_habitatlife[as.factor(HumerusSub[FemurSub$Species,"HabitatLife"])])
 
@@ -229,6 +224,7 @@ p <- summary(pairwise(lm5, null, groups = FemurSub$HabitatLife))
 null <-  procD.pgls(fem.gpa$coords~ log(FemurSub$SVL)+(HabitatLife), data = FemurSub,phy = fem.tree)
 p <- summary(pairwise(lm5, null, groups = FemurSub$HabitatLife, covariate = log(FemurSub$SVL)))
 
+# plot allometry
 allom <- plotAllometry(lm5, FemurSub$SVL, logsz = T, method = "PredLine", pch = 21, 
                        bg = col_habitatlife[as.factor(FemurSub$HabitatLife)])
 
@@ -257,8 +253,6 @@ p <- summary(pairwise(lm5, null, groups = HumerusSub$HabitatLife))
 null <- procD.pgls(hum_SMA~log(SVL)+(HabitatLife),data = HumerusSub,phy = hum.tree, Cov = OUvcv)
 p <- summary(pairwise(lm5, null, groups = HumerusSub$HabitatLife, covariate = log(HumerusSub$SVL)));p
 
-plotAllometry(lm5, HumerusSub$SVL, logsz = T, method = "PredLine", pch = 21, 
-              bg = col_habitatlife[as.factor(HumerusSub$HabitatLife)])
 
 # without sirens
 OUvcv <- vcv(corMartins(1, phy = fem.tree, form = ~fem.tree$tip.label))
@@ -273,8 +267,6 @@ p <- summary(pairwise(lm5, null, groups = FemurSub$HabitatLife))
 null <- procD.pgls(hum_SMA[FemurSub$Species]~log(SVL)+(HabitatLife),data = HumerusSub[FemurSub$Species,],phy = fem.tree, Cov = OUvcv)
 p <- summary(pairwise(lm5, null, groups = FemurSub$HabitatLife, covariate = log(FemurSub$SVL)))
 
-plotAllometry(lm5, FemurSub$SVL, logsz = T, method = "PredLine", pch = 21, 
-              bg = col_habitatlife[as.factor(FemurSub$HabitatLife)])
 
 ### Humerus COM -----------------------------------------------------------
 
@@ -298,8 +290,6 @@ p <- summary(pairwise(lm5, null, groups = HumerusSub$HabitatLife))
 null <- procD.pgls(hum_COM~log(SVL)+(Habitat+Life),data = HumerusSub,phy = hum.tree, Cov = OUvcv)
 p <- summary(pairwise(lm5, null, groups = HumerusSub$HabitatLife, covariate = log(HumerusSub$SVL)))
 
-plotAllometry(lm5, HumerusSub$SVL, logsz = T, method = "PredLine", pch = 21, 
-              bg = col_habitatlife[as.factor(HumerusSub$HabitatLife)])
 
 # without sirens
 OUvcv <- vcv(corMartins(1, phy = fem.tree, form = ~fem.tree$tip.label))
@@ -313,9 +303,6 @@ p <- summary(pairwise(lm5, null, groups = FemurSub$HabitatLife))
 # to compare slopes...
 null <- procD.pgls(hum_COM[FemurSub$Species]~log(SVL)+(HabitatLife),data = HumerusSub[FemurSub$Species,],phy = fem.tree, Cov = OUvcv)
 p <- summary(pairwise(lm5, null, groups = FemurSub$HabitatLife, covariate = log(FemurSub$SVL)))
-
-plotAllometry(lm5, FemurSub$SVL, logsz = T, method = "PredLine", pch = 21, 
-              bg = col_habitatlife[as.factor(FemurSub$HabitatLife)])
 
 
 ### Femur SMA -----------------------------------------------------------
@@ -341,9 +328,6 @@ p <- summary(pairwise(lm5, null, groups = FemurSub$HabitatLife))
 null <- procD.pgls(fem_SMA~log(SVL)+(Habitat+Life),data = FemurSub,phy = fem.tree, Cov = OUvcv)
 p <- summary(pairwise(lm5, null, groups = FemurSub$HabitatLife, covariate = log(FemurSub$SVL)))
 
-plotAllometry(lm5, FemurSub$SVL, logsz = T, method = "PredLine", pch = 21, 
-              bg = col_habitatlife[as.factor(FemurSub$HabitatLife)])
-
 ### Femur COM -----------------------------------------------------------
 
 # check fit of BM, OU, and EB
@@ -365,13 +349,11 @@ p <- summary(pairwise(lm5, null, groups = FemurSub$HabitatLife))
 null <- procD.pgls(fem_COM~log(SVL)+(HabitatLife),data = FemurSub,phy = fem.tree, Cov = OUvcv)
 p <- summary(pairwise(lm5, null, groups = FemurSub$HabitatLife, covariate = log(FemurSub$SVL)))
 
-plotAllometry(lm5, fem.gpa$Csize, logsz = T, method = "PredLine", pch = 21, 
-              bg = col_habitatlife[as.factor(FemurSub$HabitatLife)])
 
 ## PairedTest -------------------------------------------------------------
 
-# perform paired T test to compare mean humerus and femur trait by ecomorph
-
+# perform paired t-test to compare mean humerus and femur trait by ecotype
+# 
 # SMA
 ecotype <- levels(InData$HabitatLife)
 for (e in 1:5) {
@@ -500,7 +482,7 @@ for( i in 1:1000 ) maps[[i]] <- fastSimmap(tree = hum.tree, x = h.pred.data, Q =
 
 # Run MCMC in parallel
 # Define the number of cores to use
-num_cores<-6
+num_cores<-5
 # Create a cluster object using the detected cores
 cl <- makeCluster(num_cores)
 
@@ -522,18 +504,51 @@ for (i in 1:nruns) {
   h.runlist <- c(h.runlist,list(readRDS(files[i])))
   h.mcmc <- c(h.mcmc,list(readMCMC(h.runlist[[i]])))
   h.corrpost <- c(h.corrpost,list(extractCorrelation(post = h.mcmc[[i]])))
-  computeESS(h.mcmc[[i]], p = 3)
-  logAnalyzer(h.runlist[[i]])
+  #computeESS(h.mcmc[[i]], p = 5)
+  #logAnalyzer(h.runlist[[i]])
   boxplot(h.corrpost[[i]], col = col_habitatlife, ylim = c(-1,1))
 }
 
 # check for convergence
 checkConvergence(h.mcmc)
 
-# save the merged posterior distrubitions
+# merge the posterior distrubitions
 h.merged.mcmc <- mergePosterior(h.mcmc)
-saveRDS(h.merged.mcmc,"hum_merged_mcmc.StewartWiens.RDS")
+h.corr <- extractCorrelation(h.merged.mcmc)
 
+# #sanity check of convergence
+# par(mfrow=c(2,2))
+# plot(sapply(h.merged.mcmc$matrix$Aq_pd, function(x) x[1,1]))
+# plot(sapply(h.merged.mcmc$matrix$Aq_pd, function(x) x[1,2]))
+# plot(sapply(h.merged.mcmc$matrix$Aq_pd, function(x) x[2,2]))
+# plot(h.corr[,1],ylim=c(-1,1))
+# 
+# par(mfrow=c(2,2))
+# plot(sapply(h.merged.mcmc$matrix$Aq_bi, function(x) x[1,1]))
+# plot(sapply(h.merged.mcmc$matrix$Aq_bi, function(x) x[1,2]))
+# plot(sapply(h.merged.mcmc$matrix$Aq_bi, function(x) x[2,2]))
+# plot(h.corr[,1],ylim=c(-1,1))
+# 
+# par(mfrow=c(2,2))
+# plot(sapply(h.merged.mcmc$matrix$SAq_bi, function(x) x[1,1]))
+# plot(sapply(h.merged.mcmc$matrix$SAq_bi, function(x) x[1,2]))
+# plot(sapply(h.merged.mcmc$matrix$SAq_bi, function(x) x[2,2]))
+# plot(h.corr[,1],ylim=c(-1,1))
+# 
+# par(mfrow=c(2,2))
+# plot(sapply(h.merged.mcmc$matrix$T_dd, function(x) x[1,1]))
+# plot(sapply(h.merged.mcmc$matrix$T_dd, function(x) x[1,2]))
+# plot(sapply(h.merged.mcmc$matrix$T_dd, function(x) x[2,2]))
+# plot(h.corr[,1],ylim=c(-1,1))
+# 
+# par(mfrow=c(2,2))
+# plot(sapply(h.merged.mcmc$matrix$Aq_pd, function(x) x[1,1]))
+# plot(sapply(h.merged.mcmc$matrix$Aq_pd, function(x) x[1,2]))
+# plot(sapply(h.merged.mcmc$matrix$Aq_pd, function(x) x[2,2]))
+# plot(h.corr[,3],ylim=c(-1,1))
+
+# save the merged posterior distrubitions
+saveRDS(h.merged.mcmc,"hum_merged_mcmc.StewartWiens.RDS")
 
 ## Humerus no sirens -------------------------------------------------------
 # testing if evolutionary correlations differ between ecotypes
@@ -557,7 +572,7 @@ for( i in 1:1000 ) maps[[i]] <- fastSimmap(tree = fem.tree, x = h.pred.data, Q =
 
 # Run MCMC in parallel
 # Define the number of cores to use
-num_cores<-6
+num_cores<-5
 # Create a cluster object using the detected cores
 cl <- makeCluster(num_cores)
 
@@ -579,16 +594,50 @@ for (i in 1:nruns) {
   h.runlist <- c(h.runlist,list(readRDS(files[i])))
   h.mcmc <- c(h.mcmc,list(readMCMC(h.runlist[[i]])))
   h.corrpost <- c(h.corrpost,list(extractCorrelation(post = h.mcmc[[i]])))
-  computeESS(h.mcmc[[i]], p = 3)
-  logAnalyzer(h.runlist[[i]])
+  # computeESS(h.mcmc[[i]], p = 5)
+  # logAnalyzer(h.runlist[[i]])
   boxplot(h.corrpost[[i]], col = col_habitatlife, ylim = c(-1,1))
 }
 
 # check for convergence
 checkConvergence(h.mcmc)
 
-# save the merged posterior distrubitions
+# merge the posterior distrubitions
 h.merged.mcmc <- mergePosterior(h.mcmc)
+h.corr <- extractCorrelation(h.merged.mcmc)
+
+# #sanity check of convergence
+# par(mfrow=c(2,2))
+# plot(sapply(h.merged.mcmc$matrix$Aq_pd, function(x) x[1,1]))
+# plot(sapply(h.merged.mcmc$matrix$Aq_pd, function(x) x[1,2]))
+# plot(sapply(h.merged.mcmc$matrix$Aq_pd, function(x) x[2,2]))
+# plot(h.corr[,1],ylim=c(-1,1))
+# 
+# par(mfrow=c(2,2))
+# plot(sapply(h.merged.mcmc$matrix$Aq_bi, function(x) x[1,1]))
+# plot(sapply(h.merged.mcmc$matrix$Aq_bi, function(x) x[1,2]))
+# plot(sapply(h.merged.mcmc$matrix$Aq_bi, function(x) x[2,2]))
+# plot(h.corr[,1],ylim=c(-1,1))
+# 
+# par(mfrow=c(2,2))
+# plot(sapply(h.merged.mcmc$matrix$SAq_bi, function(x) x[1,1]))
+# plot(sapply(h.merged.mcmc$matrix$SAq_bi, function(x) x[1,2]))
+# plot(sapply(h.merged.mcmc$matrix$SAq_bi, function(x) x[2,2]))
+# plot(h.corr[,1],ylim=c(-1,1))
+# 
+# par(mfrow=c(2,2))
+# plot(sapply(h.merged.mcmc$matrix$T_dd, function(x) x[1,1]))
+# plot(sapply(h.merged.mcmc$matrix$T_dd, function(x) x[1,2]))
+# plot(sapply(h.merged.mcmc$matrix$T_dd, function(x) x[2,2]))
+# plot(h.corr[,1],ylim=c(-1,1))
+# 
+# par(mfrow=c(2,2))
+# plot(sapply(h.merged.mcmc$matrix$Aq_pd, function(x) x[1,1]))
+# plot(sapply(h.merged.mcmc$matrix$Aq_pd, function(x) x[1,2]))
+# plot(sapply(h.merged.mcmc$matrix$Aq_pd, function(x) x[2,2]))
+# plot(h.corr[,3],ylim=c(-1,1))
+
+# save the merged posterior distrubitions
 saveRDS(h.merged.mcmc,"hum_nosirens_merged_mcmc.StewartWiens.RDS")
 
 
@@ -614,7 +663,7 @@ for( i in 1:1000 ) maps[[i]] <- fastSimmap(tree = fem.tree, x = f.pred.data, Q =
 
 # Run MCMC in parallel
 # Define the number of cores to use
-num_cores<-6
+num_cores<-5
 # Create a cluster object using the detected cores
 cl <- makeCluster(num_cores)
 
@@ -636,16 +685,51 @@ for (i in 1:nruns) {
   f.runlist <- c(f.runlist,list(readRDS(files[i])))
   f.mcmc <- c(f.mcmc,list(readMCMC(f.runlist[[i]])))
   f.corrpost <- c(f.corrpost,list(extractCorrelation(post = f.mcmc[[i]])))
-  computeESS(h.mcmc[[i]], p = 3)
-  logAnalyzer(h.runlist[[i]])
+  # computeESS(h.mcmc[[i]], p = 5)
+  # logAnalyzer(h.runlist[[i]])
   boxplot(f.corrpost[[i]], col = col_habitatlife, ylim = c(-1,1))
 }
 
 # check for convergence
 checkConvergence(f.mcmc)
 
-# save the merged posterior distrubitions
+
+# merge the posterior distrubitions
 f.merged.mcmc <- mergePosterior(f.mcmc)
+f.corr <- extractCorrelation(f.merged.mcmc)
+
+# #sanity check of convergence
+# par(mfrow=c(2,2))
+# plot(sapply(f.merged.mcmc$matrix$Aq_pd, function(x) x[1,1]))
+# plot(sapply(f.merged.mcmc$matrix$Aq_pd, function(x) x[1,2]))
+# plot(sapply(f.merged.mcmc$matrix$Aq_pd, function(x) x[2,2]))
+# plot(f.corr[,1],ylim=c(-1,1))
+# 
+# par(mfrow=c(2,2))
+# plot(sapply(f.merged.mcmc$matrix$Aq_bi, function(x) x[1,1]))
+# plot(sapply(f.merged.mcmc$matrix$Aq_bi, function(x) x[1,2]))
+# plot(sapply(f.merged.mcmc$matrix$Aq_bi, function(x) x[2,2]))
+# plot(f.corr[,1],ylim=c(-1,1))
+# 
+# par(mfrow=c(2,2))
+# plot(sapply(f.merged.mcmc$matrix$SAq_bi, function(x) x[1,1]))
+# plot(sapply(f.merged.mcmc$matrix$SAq_bi, function(x) x[1,2]))
+# plot(sapply(f.merged.mcmc$matrix$SAq_bi, function(x) x[2,2]))
+# plot(f.corr[,1],ylim=c(-1,1))
+# 
+# par(mfrow=c(2,2))
+# plot(sapply(f.merged.mcmc$matrix$T_dd, function(x) x[1,1]))
+# plot(sapply(f.merged.mcmc$matrix$T_dd, function(x) x[1,2]))
+# plot(sapply(f.merged.mcmc$matrix$T_dd, function(x) x[2,2]))
+# plot(f.corr[,1],ylim=c(-1,1))
+# 
+# par(mfrow=c(2,2))
+# plot(sapply(f.merged.mcmc$matrix$T_bi, function(x) x[1,1]))
+# plot(sapply(f.merged.mcmc$matrix$T_bi, function(x) x[1,2]))
+# plot(sapply(f.merged.mcmc$matrix$T_bi, function(x) x[2,2]))
+# plot(f.corr[,1],ylim=c(-1,1))
+
+# save the merged posterior distrubitions
 saveRDS(f.merged.mcmc,"fem_merged_mcmc.StewartWiens.RDS")
 
 
@@ -660,7 +744,7 @@ sma.pred.data <- setNames(FemurSub[fem.tree$tip.label,"HabitatLife"],fem.tree$ti
 summary(sma.pred.data) / length(sma.pred.data)
 
 # use the ASR and Q matrices to set priors
-simmap <- readRDS("corHMM.simmap.JetzPyron.RDS")
+simmap <- readRDS("corHMM.simmap.StewartWiens.RDS")
 fit_Q_sym <- simmap[[1]]$Q
 fit_Q_sym <- fit_Q_sym[c("Aq_pd","Aq_bi","SAq_bi","T_bi","T_dd"),c("Aq_pd","Aq_bi","SAq_bi","T_bi","T_dd")]
 
@@ -671,7 +755,7 @@ for( i in 1:1000 ) maps[[i]] <- fastSimmap(tree = fem.tree, x = sma.pred.data, Q
 
 # Run MCMC in parallel
 # Define the number of cores to use
-num_cores<-6
+num_cores<-5
 # Create a cluster object using the detected cores
 cl <- makeCluster(num_cores)
 
@@ -693,16 +777,50 @@ for (i in 1:nruns) {
   sma.runlist <- c(sma.runlist,list(readRDS(files[i])))
   sma.mcmc <- c(sma.mcmc,list(readMCMC(sma.runlist[[i]])))
   sma.corrpost <- c(sma.corrpost,list(extractCorrelation(post = sma.mcmc[[i]])))
-  computeESS(h.mcmc[[i]], p = 3)
-  logAnalyzer(h.runlist[[i]])
+  # computeESS(h.mcmc[[i]], p = 3)
+  # logAnalyzer(h.runlist[[i]])
   boxplot(sma.corrpost[[i]], col = col_habitatlife, ylim = c(-1,1))
 }
 
 # check for convergence
 checkConvergence(sma.mcmc)
 
-# save the merged posterior distrubitions
+# merge the posterior distrubitions
 sma.merged.mcmc <- mergePosterior(sma.mcmc)
+sma.corr <- extractCorrelation(sma.merged.mcmc)
+
+# #sanity check of convergence
+# par(mfrow=c(2,2))
+# plot(sapply(sma.merged.mcmc$matrix$Aq_pd, function(x) x[1,1]))
+# plot(sapply(sma.merged.mcmc$matrix$Aq_pd, function(x) x[1,2]))
+# plot(sapply(sma.merged.mcmc$matrix$Aq_pd, function(x) x[2,2]))
+# plot(sma.corr[,1],ylim=c(-1,1))
+# 
+# par(mfrow=c(2,2))
+# plot(sapply(sma.merged.mcmc$matrix$Aq_bi, function(x) x[1,1]))
+# plot(sapply(sma.merged.mcmc$matrix$Aq_bi, function(x) x[1,2]))
+# plot(sapply(sma.merged.mcmc$matrix$Aq_bi, function(x) x[2,2]))
+# plot(sma.corr[,1],ylim=c(-1,1))
+# 
+# par(mfrow=c(2,2))
+# plot(sapply(sma.merged.mcmc$matrix$SAq_bi, function(x) x[1,1]))
+# plot(sapply(sma.merged.mcmc$matrix$SAq_bi, function(x) x[1,2]))
+# plot(sapply(sma.merged.mcmc$matrix$SAq_bi, function(x) x[2,2]))
+# plot(sma.corr[,1],ylim=c(-1,1))
+# 
+# par(mfrow=c(2,2))
+# plot(sapply(sma.merged.mcmc$matrix$T_dd, function(x) x[1,1]))
+# plot(sapply(sma.merged.mcmc$matrix$T_dd, function(x) x[1,2]))
+# plot(sapply(sma.merged.mcmc$matrix$T_dd, function(x) x[2,2]))
+# plot(sma.corr[,1],ylim=c(-1,1))
+# 
+# par(mfrow=c(2,2))
+# plot(sapply(sma.merged.mcmc$matrix$Aq_pd, function(x) x[1,1]))
+# plot(sapply(sma.merged.mcmc$matrix$Aq_pd, function(x) x[1,2]))
+# plot(sapply(sma.merged.mcmc$matrix$Aq_pd, function(x) x[2,2]))
+# plot(sma.corr[,3],ylim=c(-1,1))
+
+# save the merged posterior distrubitions
 saveRDS(sma.merged.mcmc,"sma_merged_mcmc.StewartWiens.RDS")
 
 ## COM --------------------------------------------------------------------
@@ -727,7 +845,7 @@ for( i in 1:1000 ) maps[[i]] <- fastSimmap(tree = fem.tree, x = com.pred.data, Q
 
 # Run MCMC in parallel
 # Define the number of cores to use
-num_cores<-6
+num_cores<-5
 # Create a cluster object using the detected cores
 cl <- makeCluster(num_cores)
 
@@ -749,20 +867,108 @@ for (i in 1:nruns) {
   com.runlist <- c(com.runlist,list(readRDS(files[i])))
   com.mcmc <- c(com.mcmc,list(readMCMC(com.runlist[[i]])))
   com.corrpost <- c(com.corrpost,list(extractCorrelation(post = com.mcmc[[i]])))
-  computeESS(h.mcmc[[i]], p = 3)
-  logAnalyzer(h.runlist[[i]])
+  # computeESS(h.mcmc[[i]], p = 5)
+  # logAnalyzer(h.runlist[[i]])
   boxplot(com.corrpost[[i]], col = col_habitatlife, ylim = c(-1,1))
 }
 
 # check for convergence
-checkConvergence(com.mcmc[1:5])
+checkConvergence(com.mcmc)
+
+# merge the posterior distrubitions
+com.merged.mcmc <- mergePosterior(com.mcmc)
+com.corr <- extractCorrelation(com.merged.mcmc)
+
+# #sanity check of convergence
+par(mfrow=c(2,2))
+plot(sapply(com.merged.mcmc$matrix$Aq_pd, function(x) x[1,1]))
+plot(sapply(com.merged.mcmc$matrix$Aq_pd, function(x) x[1,2]))
+plot(sapply(com.merged.mcmc$matrix$Aq_pd, function(x) x[2,2]))
+plot(com.corr[,1],ylim=c(-1,1))
+# 
+# par(mfrow=c(2,2))
+# plot(sapply(com.merged.mcmc$matrix$Aq_bi, function(x) x[1,1]))
+# plot(sapply(com.merged.mcmc$matrix$Aq_bi, function(x) x[1,2]))
+# plot(sapply(com.merged.mcmc$matrix$Aq_bi, function(x) x[2,2]))
+# plot(com.corr[,1],ylim=c(-1,1))
+# 
+# par(mfrow=c(2,2))
+# plot(sapply(com.merged.mcmc$matrix$SAq_bi, function(x) x[1,1]))
+# plot(sapply(com.merged.mcmc$matrix$SAq_bi, function(x) x[1,2]))
+# plot(sapply(com.merged.mcmc$matrix$SAq_bi, function(x) x[2,2]))
+# plot(com.corr[,1],ylim=c(-1,1))
+# 
+# par(mfrow=c(2,2))
+# plot(sapply(com.merged.mcmc$matrix$T_dd, function(x) x[1,1]))
+# plot(sapply(com.merged.mcmc$matrix$T_dd, function(x) x[1,2]))
+# plot(sapply(com.merged.mcmc$matrix$T_dd, function(x) x[2,2]))
+# plot(com.corr[,1],ylim=c(-1,1))
+# 
+# par(mfrow=c(2,2))
+# plot(sapply(com.merged.mcmc$matrix$Aq_pd, function(x) x[1,1]))
+# plot(sapply(com.merged.mcmc$matrix$Aq_pd, function(x) x[1,2]))
+# plot(sapply(com.merged.mcmc$matrix$Aq_pd, function(x) x[2,2]))
+# plot(com.corr[,3],ylim=c(-1,1))
 
 # save the merged posterior distrubitions
-com.merged.mcmc <- mergePosterior(com.mcmc)
 saveRDS(com.merged.mcmc,"com_merged_mcmc.StewartWiens.RDS")
 
-## Plot Correlations ------------------------------------------------------
 
+# Plot Correlations ----------------------------------------------------
+## Internal Data -------------------------------------------------------
+
+# plot data for figure 4
+#HUMERUS
+a <- ggplot(HumerusSub, aes(y = (Hum_COM), x = (Hum_SMA), color = HabitatLife)) + 
+  geom_smooth(method = "lm", se = F)+
+  geom_point(size = 2.5, position = position_jitter(0.01), alpha = 0.75,
+             aes(shape = HabitatLife, fill = HabitatLife), col = "black")+
+  scale_shape_manual(values = c(24,21,21,21,22))+
+  xlim(1.05,2.57)+  ylim(0.6,1.019)+
+  labs(y = "Humerus Density", x = "Humerus Stiffness")+
+  scale_fill_manual(values = col_habitatlife) + 
+  scale_colour_manual(values = col_habitatlife)+ theme_classic() 
+
+#FEMUR
+b <- ggplot(FemurSub, aes(y = (Fem_COM), x = (Fem_SMA), color = HabitatLife)) + 
+  scale_shape_manual(values = c(24,21,21,21,22))+
+  geom_smooth(method = "lm", se = F)+
+  geom_point(size = 2.5,position = position_jitter(0.01), alpha = 0.75, 
+             aes(shape = HabitatLife, fill = HabitatLife), col = "black")+
+  xlim(1.05,2.57)+  ylim(0.6,1.019)+
+  labs(y = "Femur Density", x = "Femur Stiffness")+
+  scale_fill_manual(values = col_habitatlife) + 
+  scale_colour_manual(values = col_habitatlife)+ theme_classic() 
+
+# SMA 
+c <- ggplot(na.omit(InData), aes(y = Fem_SMA, x = Hum_SMA, color = HabitatLife)) + 
+  geom_smooth(method = "lm", se = F)+
+  geom_point(size = 2.5,position = position_jitter(0.01), alpha = 0.75,
+             aes(shape = HabitatLife, fill = HabitatLife), col = "black")+
+  scale_shape_manual(values = c(24,21,21,21,22))+
+  xlim(1.05,2.6)+ ylim(1.05,2.6)+ 
+  labs(y = "Femur Stiffness", x = "Humerus Stiffness")+
+  scale_fill_manual(values = col_habitatlife) + 
+  scale_colour_manual(values = col_habitatlife)+ theme_classic() 
+
+# COM
+d <- ggplot(na.omit(InData), aes(y = (Hum_COM), x = (Fem_COM), color = HabitatLife)) + 
+  scale_shape_manual(values = c(24,21,21,21,22))+
+  geom_smooth(method = "lm", se = F)+
+  geom_point(size = 2.5,position = position_jitter(0.01), alpha = 0.75, 
+             aes(shape = HabitatLife, fill = HabitatLife), col = "black")+
+  xlim(0.63,1.019)+ ylim(0.63,1.019)+
+  labs(y = "Femur Density", x = "Humerus Density")+
+  scale_fill_manual(values = col_habitatlife) + 
+  scale_colour_manual(values = col_habitatlife)+ theme_classic() 
+
+
+a + b + c + d + plot_annotation(tag_levels = "A") & theme(legend.position = "none") 
+
+
+## Correlations ------------------------------------------------------
+
+# read the ratematrix results
 h.merged.mcmc <- readRDS("hum_merged_mcmc.StewartWiens.RDS")
 h.merged.mcmc.nosirens <- readRDS("hum_nosirens_merged_mcmc.StewartWiens.RDS")
 f.merged.mcmc <- readRDS("fem_merged_mcmc.StewartWiens.RDS")
@@ -770,56 +976,58 @@ sma.merged.mcmc <- readRDS("sma_merged_mcmc.StewartWiens.RDS")
 com.merged.mcmc <- readRDS("com_merged_mcmc.StewartWiens.RDS")
 
 h.corr <- extractCorrelation(h.merged.mcmc)
-h.corr <- extractCorrelation(h.merged.mcmc.nosirens)
+h.corr.nosirens <- extractCorrelation(h.merged.mcmc.nosirens)
 f.corr <- extractCorrelation(f.merged.mcmc)
 sma.corr <- extractCorrelation(sma.merged.mcmc)
 com.corr <- extractCorrelation(com.merged.mcmc)
 
-# calculate mean correlation values
-apply(h.corr,2,mean)
-apply(h.corr.nosirens,2,mean)
-apply(f.corr,2,mean)
-apply(sma.corr,2,mean)
-apply(com.corr,2,mean)
+# calculate median correlation values
+apply(h.corr,2,median)
+apply(h.corr.nosirens,2,median)
+apply(f.corr,2,median)
+apply(sma.corr,2,median)
+apply(com.corr,2,median)
 
 # plot the posterior distributions for figure 4 
-corr <- data.frame("HabitatLife" = c(rep("Aq_pd",nrow(h.corr)),rep("Aq_bi",nrow(h.corr)),rep("SAq_bi",nrow(h.corr)),rep("T_bi",nrow(h.corr)),rep("T_dd",nrow(h.corr))),
+h.corr <- data.frame("HabitatLife" = c(rep("Aq_pd",nrow(h.corr)),rep("Aq_bi",nrow(h.corr)),rep("SAq_bi",nrow(h.corr)),rep("T_bi",nrow(h.corr)),rep("T_dd",nrow(h.corr))),
                    "Correlation" = c(h.corr[,1],h.corr[,2],h.corr[,3],h.corr[,4],h.corr[,5]))
-a<-ggplot(corr, aes(x=Correlation, fill=HabitatLife)) +
+ain<-ggplot(h.corr, aes(x=Correlation, fill=HabitatLife)) +
   geom_density(alpha=0.7, adjust = 2.5) +
   scale_fill_manual(values = col_habitatlife)+
   xlim(-1,1)+
   xlab(label = "Humerus: Stiffness vs Density")+
-  theme_classic()
+  theme_classic()+
+  guides(fill = "none")
 
-corr <- data.frame("HabitatLife" = c(rep("Aq_pd",nrow(f.corr)),rep("Aq_bi",nrow(f.corr)),rep("SAq_bi",nrow(f.corr)),rep("T_bi",nrow(f.corr)),rep("T_dd",nrow(f.corr))),
+f.corr <- data.frame("HabitatLife" = c(rep("Aq_pd",nrow(f.corr)),rep("Aq_bi",nrow(f.corr)),rep("SAq_bi",nrow(f.corr)),rep("T_bi",nrow(f.corr)),rep("T_dd",nrow(f.corr))),
                    "Correlation" = c(f.corr[,1],f.corr[,2],f.corr[,3],f.corr[,4],f.corr[,5]))
-b<-ggplot(corr, aes(x=Correlation, fill=HabitatLife)) +
+bin<-ggplot(f.corr, aes(x=Correlation, fill=HabitatLife)) +
   geom_density(alpha=0.7, adjust = 2.5) +
   scale_fill_manual(values = col_habitatlife)+
   xlim(-1,1)+
   xlab(label = "Femur: Stiffness vs Density")+
   theme_classic()
 
-corr <- data.frame("HabitatLife" = c(rep("Aq_pd",nrow(sma.corr)),rep("Aq_bi",nrow(sma.corr)),rep("SAq_bi",nrow(sma.corr)),rep("T_bi",nrow(sma.corr)),rep("T_dd",nrow(sma.corr))),
+sma.corr <- data.frame("HabitatLife" = c(rep("Aq_pd",nrow(sma.corr)),rep("Aq_bi",nrow(sma.corr)),rep("SAq_bi",nrow(sma.corr)),rep("T_bi",nrow(sma.corr)),rep("T_dd",nrow(sma.corr))),
                    "Correlation" = c(sma.corr[,1],sma.corr[,2],sma.corr[,3],sma.corr[,4],sma.corr[,5]))
-c<-ggplot(corr, aes(x=Correlation, fill=HabitatLife)) +
+cin<-ggplot(sma.corr, aes(x=Correlation, fill=HabitatLife)) +
   geom_density(alpha=0.7, adjust = 2.5) +
   scale_fill_manual(values = col_habitatlife)+
   xlim(-1,1)+
   xlab(label = "Stiffness: Humerus vs Femur")+
   theme_classic()
 
-corr <- data.frame("HabitatLife" = c(rep("Aq_pd",nrow(com.corr)),rep("Aq_bi",nrow(com.corr)),rep("SAq_bi",nrow(com.corr)),rep("T_bi",nrow(com.corr)),rep("T_dd",nrow(com.corr))),
+com.corr <- data.frame("HabitatLife" = c(rep("Aq_pd",nrow(com.corr)),rep("Aq_bi",nrow(com.corr)),rep("SAq_bi",nrow(com.corr)),rep("T_bi",nrow(com.corr)),rep("T_dd",nrow(com.corr))),
                    "Correlation" = c(com.corr[,1],com.corr[,2],com.corr[,3],com.corr[,4],com.corr[,5]))
-d<-ggplot(corr, aes(x=Correlation, fill=HabitatLife)) +
+din<-ggplot(com.corr, aes(x=Correlation, fill=HabitatLife)) +
   geom_density(alpha=0.7, adjust = 3) +
   scale_fill_manual(values = col_habitatlife)+
   xlim(-1,1)+
   xlab(label = "Density: Humerus vs Femur")+
   theme_classic()
 
-(a+b) / (c+d) + plot_annotation(tag_levels = "A") & theme(legend.position = 'none') 
+(ain+bin) / (cin+din) & theme(legend.position = 'none') 
+
 
 # Two Block PLS -----------------------------------------------------------
 
@@ -935,13 +1143,13 @@ c3func(HumerusSub[fem.tree$tip.label,c("Species","Habitat","Life","Hum_COM")], f
 
 # femur
 c3func(FemurSub[,c("Species","Habitat","Life","Fem_SMA")], fem.tree, models, nSim = 100, path = "hOUwie_Fem_SMA_100_StewartWiens")
-c3func(FemurSub[,c("Species","Habitat","Life","Fem_COM")], fem.tree, models, nSim = 100, path = "hOUwie_Fem_COM_100_StewartWiens")
+c3func(FemurSub[,c("Species","Habitat","Life","Fem_COM")], fem.tree, models, nSim = 100, path = "hOUwie_Fem_COM_100_StewartWiens_redonouse")
 
 #legend
 # "Aq_bi"  "Aq_pd" "SAq_bi"   "T_bi"   "T_dd" 
 
 # read in one set of models
-folder = "hOUwie_Hum_SMA_100_StewartWiens"
+folder = "hOUwie_Fem_COM_100_StewartWiens_redonouse"
 model_set <- list()
 for (i in list.files(folder, full.names = T)) {
   model_set <- c(model_set,list(readRDS(i)))
@@ -960,8 +1168,9 @@ best_model$solution.cont
 # get the model averaged parameters
 model_avg_pars <- getModelAvgParams(model_set, type = "AICc")
 rownames(model_avg_pars) <- gsub(" ","_",rownames(model_avg_pars))
-model_avg_pars$tip_state <- FemurSub[rownames(model_avg_pars),"HabitatLife"]
+model_avg_pars$tip_state <- HumerusSub[rownames(model_avg_pars),"HabitatLife"]
 # sigma
 tapply(model_avg_pars$sigma.sq,model_avg_pars$tip_state, mean)
 # theta
 tapply(model_avg_pars$theta,model_avg_pars$tip_state, mean)
+
