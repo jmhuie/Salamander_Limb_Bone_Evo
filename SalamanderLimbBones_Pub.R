@@ -15,7 +15,7 @@ library(parallel)
 # Load Data ---------------------------------------------------------------
 
 # read internal data
-InData <- read.csv("InternalDataAllNew.csv")
+InData <- read.csv("InternalDataAll.csv")
 rownames(InData) <- InData$Species
 InData$Habitat <- factor(InData$Habitat , levels=c("Aq", "SAq", "T"))
 InData$Life <- factor(InData$Life , levels=c("pd", "bi", "dd"))
@@ -24,14 +24,14 @@ HumerusSub <- InData[,c(1:12)]
 FemurSub <- na.omit(InData[,c(1:7,13:17)])
 
 # read 3D GMM Data
-Humerus_land <- read_SlicerLand("Humerus_Land/")
+Humerus_land <- read_SlicerLand("Landmark Files/Humerus_Land/")
 hum.gpa <- gpagen(Humerus_land)
 
-Femur_land <- read_SlicerLand("Femur_Land/")
+Femur_land <- read_SlicerLand("Landmark Files/Femur_Land/")
 fem.gpa <- gpagen(Femur_land)
 
 # read tree
-tree <- read.tree("Supplementary_File_S3_fulltree_trim.tree")
+tree <- read.tree("StewartWines2025_fulltree_trim.tree")
 hum.tree <- drop.tip(tree, setdiff(tree$tip.label,HumerusSub$Species))
 fem.tree <- drop.tip(tree, setdiff(tree$tip.label,FemurSub$Species))
 
@@ -56,23 +56,23 @@ tiplabels(pch = 16, col = col_habitat[corHMM.data[,2]], cex = 0.75)
 tiplabels(pch = 16, col = col_life[corHMM.data[,3]], cex = 0.75, offset = 2.5)
 
 # ## no dual transitions
-# RunModels(phy = tree, data = corHMM.data, dual = FALSE, name = "corModelSet.StewartWiens.Rsave")
+# RunModels(phy = tree, data = corHMM.data, dual = FALSE, name = "corHMM Files/corModelSet.StewartWiens.Rsave")
 
 # ## if we want to allow dual transitions
-# RunModels(phy = tree, data = corHMM.data, dual = TRUE, name = "corModelSet.DUAL.StewartWiens.Rsave")
+# RunModels(phy = tree, data = corHMM.data, dual = TRUE, name = "corHMM Files/corModelSet.DUAL.StewartWiens.Rsave")
 
-load("corModelSet.StewartWiens.Rsave")
+load("corHMM Files/corModelSet.StewartWiens.Rsave")
 CorRes_1 <- CorRes_i
-load("corModelSet.DUAL.StewartWiens.Rsave")
+load("corHMM Files/corModelSet.DUAL.StewartWiens.Rsave")
 CorRes_2 <- CorRes_i
 CorRes_i <- c(CorRes_1, CorRes_2)
-save(CorRes_i, file = "corModelSet.Full.StewartWiens.Rsave")
+save(CorRes_i, file = "corHMM Files/corModelSet.Full.StewartWiens.Rsave")
 
-results <- getResultsTable("corModelSet.Full.StewartWiens.Rsave")
+results <- getResultsTable("corHMM Files/corModelSet.Full.StewartWiens.Rsave")
 best_model <- which(results[,"AICcWt"] == max(results[,"AICcWt"]))
 
 ## best fitting model as determined by wtAIC
-load("corModelSet.Full.StewartWiens.Rsave")
+load("corHMM Files/corModelSet.Full.StewartWiens.Rsave")
 MK_5state <- CorRes_i[[best_model]]
 MK_5state; plotMKmodel(MK_5state)
 
@@ -85,8 +85,8 @@ MK_5state; plotMKmodel(MK_5state)
 
 # run simmap with best fitting model paramters
 # simmap <- makeSimmap(tree=tree, data=MK_5state$data, model=MK_5state$solution, rate.cat= MK_5state$rate.cat, nSim=1000)
-# saveRDS(simmap, file = "corHMM.simmap.StewartWiens.RDS") # save simmap
-simmap <- readRDS("corHMM.simmap.StewartWiens.RDS") # load simmap
+# saveRDS(simmap, file = "corHMM Files/corHMM.simmap.StewartWiens.RDS") # save simmap
+simmap <- readRDS("corHMM Files/corHMM.simmap.StewartWiens.RDS") # load simmap
 
 ## summarize simmap
 pd <- describe.simmap(simmap)
@@ -471,7 +471,7 @@ h.pred.data <- setNames(HumerusSub[hum.tree$tip.label,"HabitatLife"],hum.tree$ti
 summary( h.pred.data ) / length(h.pred.data)
 
 # use the ASR and Q matrices to set priors
-simmap <- readRDS("corHMM.simmap.StewartWiens.RDS")
+simmap <- readRDS("corHMM Files/corHMM.simmap.StewartWiens.RDS")
 fit_Q_sym <- simmap[[1]]$Q
 fit_Q_sym <- fit_Q_sym[c("Aq_pd","Aq_bi","SAq_bi","T_bi","T_dd"),c("Aq_pd","Aq_bi","SAq_bi","T_bi","T_dd")]
 
@@ -487,13 +487,14 @@ num_cores<-5
 cl <- makeCluster(num_cores)
 
 clusterCall(cl, ratematrixMCMC, data = h.resp.data, 
-            phy = maps, gen = 5000000, dir = "hum_runs_ASR_StewartWiens",
+            phy = maps, gen = 5000000, dir = "ratematrix Files/hum_runs_ASR_StewartWiens",
             burn = 0.25)
 # Stop the cluster when done
 stopCluster(cl)
 
 # read in and check the results
-files <- list.files("hum_runs_ASR_StewartWiens",full.names = T)
+dir <- "ratematrix Files/hum_runs_ASR_StewartWiens"
+files <- list.files(dir,full.names = T)
 files <- files[grep(".rds",files)]
 nruns <- length(files)
 h.runlist <- list()
@@ -502,7 +503,7 @@ h.corrpost <- list()
 par(mfrow = c(ceiling(nruns/5),5))
 for (i in 1:nruns) {
   h.runlist <- c(h.runlist,list(readRDS(files[i])))
-  h.mcmc <- c(h.mcmc,list(readMCMC(h.runlist[[i]])))
+  h.mcmc <- c(h.mcmc,list(readMCMC(h.runlist[[i]], dir = dir)))
   h.corrpost <- c(h.corrpost,list(extractCorrelation(post = h.mcmc[[i]])))
   #computeESS(h.mcmc[[i]], p = 5)
   #logAnalyzer(h.runlist[[i]])
@@ -548,7 +549,7 @@ h.corr <- extractCorrelation(h.merged.mcmc)
 # plot(h.corr[,3],ylim=c(-1,1))
 
 # save the merged posterior distrubitions
-saveRDS(h.merged.mcmc,"hum_merged_mcmc.StewartWiens.RDS")
+saveRDS(h.merged.mcmc,"ratematrix Files/hum_merged_mcmc.StewartWiens.RDS")
 
 ## Humerus no sirens -------------------------------------------------------
 # testing if evolutionary correlations differ between ecotypes
@@ -561,7 +562,7 @@ h.pred.data <- setNames(HumerusSub[fem.tree$tip.label,"HabitatLife"],fem.tree$ti
 summary(h.pred.data) / length(h.pred.data)
 
 # use the ASR and Q matrices to set priors
-simmap <- readRDS("corHMM.simmap.StewartWiens.RDS")
+simmap <- readRDS("corHMM Files/corHMM.simmap.StewartWiens.RDS")
 fit_Q_sym <- simmap[[1]]$Q
 fit_Q_sym <- fit_Q_sym[c("Aq_pd","Aq_bi","SAq_bi","T_bi","T_dd"),c("Aq_pd","Aq_bi","SAq_bi","T_bi","T_dd")]
 
@@ -577,13 +578,14 @@ num_cores<-5
 cl <- makeCluster(num_cores)
 
 clusterCall(cl, ratematrixMCMC, data = h.resp.data,
-            phy = maps, gen = 5000000, dir = "hum_runs_nosirens_ASR_StewartWiens",
+            phy = maps, gen = 5000000, dir = "ratematrix Files/hum_runs_nosirens_ASR_StewartWiens",
             burn = 0.25)
 # Stop the cluster when done
 stopCluster(cl)
 
 # read in and check the results
-files <- list.files("hum_runs_nosirens_ASR_StewartWiens",full.names = T)
+dir <- "ratematrix Files/hum_runs_nosirens_ASR_StewartWiens"
+files <- list.files(dir,full.names = T)
 files <- files[grep(".rds",files)]
 nruns <- length(files)
 h.runlist <- list()
@@ -592,7 +594,7 @@ h.corrpost <- list()
 par(mfrow = c(ceiling(nruns/5),5))
 for (i in 1:nruns) {
   h.runlist <- c(h.runlist,list(readRDS(files[i])))
-  h.mcmc <- c(h.mcmc,list(readMCMC(h.runlist[[i]])))
+  h.mcmc <- c(h.mcmc,list(readMCMC(h.runlist[[i]], dir = dir)))
   h.corrpost <- c(h.corrpost,list(extractCorrelation(post = h.mcmc[[i]])))
   # computeESS(h.mcmc[[i]], p = 5)
   # logAnalyzer(h.runlist[[i]])
@@ -638,7 +640,7 @@ h.corr <- extractCorrelation(h.merged.mcmc)
 # plot(h.corr[,3],ylim=c(-1,1))
 
 # save the merged posterior distrubitions
-saveRDS(h.merged.mcmc,"hum_nosirens_merged_mcmc.StewartWiens.RDS")
+saveRDS(h.merged.mcmc,"ratematrix Files/hum_nosirens_merged_mcmc.StewartWiens.RDS")
 
 
 ## Femur -------------------------------------------------------------------
@@ -652,7 +654,7 @@ f.pred.data <- setNames(FemurSub[fem.tree$tip.label,"HabitatLife"],fem.tree$tip.
 summary(f.pred.data) / length(f.pred.data)
 
 # use the ASR and Q matrices to set priors
-simmap <- readRDS("corHMM.simmap.StewartWiens.RDS")
+simmap <- readRDS("corHMM Files/orHMM.simmap.StewartWiens.RDS")
 fit_Q_sym <- simmap[[1]]$Q
 fit_Q_sym <- fit_Q_sym[c("Aq_pd","Aq_bi","SAq_bi","T_bi","T_dd"),c("Aq_pd","Aq_bi","SAq_bi","T_bi","T_dd")]
 
@@ -668,13 +670,14 @@ num_cores<-5
 cl <- makeCluster(num_cores)
 
 clusterCall(cl, ratematrixMCMC, data = f.resp.data,
-            phy = maps, gen = 5000000, dir = "fem_runs_ASR_StewartWiens",
+            phy = maps, gen = 5000000, dir = "ratematrix Files/fem_runs_ASR_StewartWiens",
             burn = 0.25)
 # Stop the cluster when done
 stopCluster(cl)
 
 # read in and check the results
-files <- list.files("fem_runs_ASR_StewartWiens",full.names = T)
+dir <- "ratematrix Files/fem_runs_ASR_StewartWiens"
+files <- list.files(dir,full.names = T)
 files <- files[grep(".rds",files)]
 nruns <- length(files)
 f.runlist <- list()
@@ -683,7 +686,7 @@ f.corrpost <- list()
 par(mfrow = c(ceiling(nruns/5),5))
 for (i in 1:nruns) {
   f.runlist <- c(f.runlist,list(readRDS(files[i])))
-  f.mcmc <- c(f.mcmc,list(readMCMC(f.runlist[[i]])))
+  f.mcmc <- c(f.mcmc,list(readMCMC(f.runlist[[i]], dir = dir)))
   f.corrpost <- c(f.corrpost,list(extractCorrelation(post = f.mcmc[[i]])))
   # computeESS(h.mcmc[[i]], p = 5)
   # logAnalyzer(h.runlist[[i]])
@@ -730,7 +733,7 @@ f.corr <- extractCorrelation(f.merged.mcmc)
 # plot(f.corr[,1],ylim=c(-1,1))
 
 # save the merged posterior distrubitions
-saveRDS(f.merged.mcmc,"fem_merged_mcmc.StewartWiens.RDS")
+saveRDS(f.merged.mcmc,"ratematrix Files/fem_merged_mcmc.StewartWiens.RDS")
 
 
 ## SMA --------------------------------------------------------------------
@@ -744,7 +747,7 @@ sma.pred.data <- setNames(FemurSub[fem.tree$tip.label,"HabitatLife"],fem.tree$ti
 summary(sma.pred.data) / length(sma.pred.data)
 
 # use the ASR and Q matrices to set priors
-simmap <- readRDS("corHMM.simmap.StewartWiens.RDS")
+simmap <- readRDS("corHMM Files/corHMM.simmap.StewartWiens.RDS")
 fit_Q_sym <- simmap[[1]]$Q
 fit_Q_sym <- fit_Q_sym[c("Aq_pd","Aq_bi","SAq_bi","T_bi","T_dd"),c("Aq_pd","Aq_bi","SAq_bi","T_bi","T_dd")]
 
@@ -760,13 +763,14 @@ num_cores<-5
 cl <- makeCluster(num_cores)
 
 clusterCall(cl, ratematrixMCMC, data = sma.resp.data,
-            phy = maps, gen = 5000000, dir = "sma_runs_ASR_StewartWiens",
+            phy = maps, gen = 5000000, dir = "ratematrix Files/sma_runs_ASR_StewartWiens",
             burn = 0.25)
 # Stop the cluster when done
 stopCluster(cl)
 
 # read in and check the results
-files <- list.files("sma_runs_ASR_StewartWiens",full.names = T)
+dir <- "ratematrix Files/sma_runs_ASR_StewartWiens"
+files <- list.files(dir,full.names = T)
 files <- files[grep(".rds",files)]
 nruns <- length(files)
 sma.runlist <- list()
@@ -775,7 +779,7 @@ sma.corrpost <- list()
 par(mfrow = c(ceiling(nruns/5),5))
 for (i in 1:nruns) {
   sma.runlist <- c(sma.runlist,list(readRDS(files[i])))
-  sma.mcmc <- c(sma.mcmc,list(readMCMC(sma.runlist[[i]])))
+  sma.mcmc <- c(sma.mcmc,list(readMCMC(sma.runlist[[i]], dir = dir)))
   sma.corrpost <- c(sma.corrpost,list(extractCorrelation(post = sma.mcmc[[i]])))
   # computeESS(h.mcmc[[i]], p = 3)
   # logAnalyzer(h.runlist[[i]])
@@ -821,7 +825,7 @@ sma.corr <- extractCorrelation(sma.merged.mcmc)
 # plot(sma.corr[,3],ylim=c(-1,1))
 
 # save the merged posterior distrubitions
-saveRDS(sma.merged.mcmc,"sma_merged_mcmc.StewartWiens.RDS")
+saveRDS(sma.merged.mcmc,"ratematrix Files/sma_merged_mcmc.StewartWiens.RDS")
 
 ## COM --------------------------------------------------------------------
 # testing if evolutionary correlations differ between regimes
@@ -834,7 +838,7 @@ com.pred.data <- setNames(FemurSub[fem.tree$tip.label,"HabitatLife"],fem.tree$ti
 summary(com.pred.data) / length(com.pred.data)
 
 # use the ASR and Q matrices to set priors
-simmap <- readRDS("corHMM.simmap.StewartWiens.RDS")
+simmap <- readRDS("corHMM Files/corHMM.simmap.StewartWiens.RDS")
 fit_Q_sym <- simmap[[1]]$Q
 fit_Q_sym <- fit_Q_sym[c("Aq_pd","Aq_bi","SAq_bi","T_bi","T_dd"),c("Aq_pd","Aq_bi","SAq_bi","T_bi","T_dd")]
 
@@ -850,13 +854,14 @@ num_cores<-5
 cl <- makeCluster(num_cores)
 
 clusterCall(cl, ratematrixMCMC, data = com.resp.data,
-            phy = maps, gen = 5000000, dir = "com_runs_ASR_StewartWiens",
+            phy = maps, gen = 5000000, dir = "ratematrix Files/com_runs_ASR_StewartWiens",
             burn = 0.25)
 # Stop the cluster when done
 stopCluster(cl)
 
 # read in and check the results
-files <- list.files("com_runs_ASR_StewartWiens",full.names = T)
+dir = "ratematrix Files/com_runs_ASR_StewartWiens"
+files <- list.files(dir,full.names = T)
 files <- files[grep(".rds",files)]
 nruns <- length(files)
 com.runlist <- list()
@@ -865,7 +870,7 @@ com.corrpost <- list()
 par(mfrow = c(ceiling(nruns/5),5))
 for (i in 1:nruns) {
   com.runlist <- c(com.runlist,list(readRDS(files[i])))
-  com.mcmc <- c(com.mcmc,list(readMCMC(com.runlist[[i]])))
+  com.mcmc <- c(com.mcmc,list(readMCMC(com.runlist[[i]], dir = dir)))
   com.corrpost <- c(com.corrpost,list(extractCorrelation(post = com.mcmc[[i]])))
   # computeESS(h.mcmc[[i]], p = 5)
   # logAnalyzer(h.runlist[[i]])
@@ -911,7 +916,7 @@ plot(com.corr[,1],ylim=c(-1,1))
 # plot(com.corr[,3],ylim=c(-1,1))
 
 # save the merged posterior distrubitions
-saveRDS(com.merged.mcmc,"com_merged_mcmc.StewartWiens.RDS")
+saveRDS(com.merged.mcmc,"ratematrix Files/com_merged_mcmc.StewartWiens.RDS")
 
 
 # Plot Correlations ----------------------------------------------------
@@ -969,11 +974,11 @@ a + b + c + d + plot_annotation(tag_levels = "A") & theme(legend.position = "non
 ## Correlations ------------------------------------------------------
 
 # read the ratematrix results
-h.merged.mcmc <- readRDS("hum_merged_mcmc.StewartWiens.RDS")
-h.merged.mcmc.nosirens <- readRDS("hum_nosirens_merged_mcmc.StewartWiens.RDS")
-f.merged.mcmc <- readRDS("fem_merged_mcmc.StewartWiens.RDS")
-sma.merged.mcmc <- readRDS("sma_merged_mcmc.StewartWiens.RDS")
-com.merged.mcmc <- readRDS("com_merged_mcmc.StewartWiens.RDS")
+h.merged.mcmc <- readRDS("ratematrix Files/hum_merged_mcmc.StewartWiens.RDS")
+h.merged.mcmc.nosirens <- readRDS("ratematrix Files/hum_nosirens_merged_mcmc.StewartWiens.RDS")
+f.merged.mcmc <- readRDS("ratematrix Files/fem_merged_mcmc.StewartWiens.RDS")
+sma.merged.mcmc <- readRDS("ratematrix Files/sma_merged_mcmc.StewartWiens.RDS")
+com.merged.mcmc <- readRDS("ratematrix Files/com_merged_mcmc.StewartWiens.RDS")
 
 h.corr <- extractCorrelation(h.merged.mcmc)
 h.corr.nosirens <- extractCorrelation(h.merged.mcmc.nosirens)
@@ -1134,22 +1139,22 @@ models$cid_oumv_life[3,] <- c(9,8,9,9,10,12,11,12,12,13)
 # run the models (this will take a long time)
 # humerus
 # with sirens
-c3func(HumerusSub[,c("Species","Habitat","Life","Hum_SMA")], hum.tree, models, nSim = 100, path = "hOUwie_Hum_SMA_100_StewartWiens")
-c3func(HumerusSub[,c("Species","Habitat","Life","Hum_COM")], hum.tree, models, nSim = 100, path = "hOUwie_Hum_COM_100_StewartWiens")
+c3func(HumerusSub[,c("Species","Habitat","Life","Hum_SMA")], hum.tree, models, nSim = 100, path = "hOUwie Files/hOUwie_Hum_SMA_100_StewartWiens")
+c3func(HumerusSub[,c("Species","Habitat","Life","Hum_COM")], hum.tree, models, nSim = 100, path = "hOUwie Files/hOUwie_Hum_COM_100_StewartWiens")
 
 # without sirens
-c3func(HumerusSub[fem.tree$tip.label,c("Species","Habitat","Life","Hum_SMA")], fem.tree, models, nSim = 100, path = "hOUwie_Hum_SMA_100_nosiren_StewartWiens")
-c3func(HumerusSub[fem.tree$tip.label,c("Species","Habitat","Life","Hum_COM")], fem.tree, models, nSim = 100, path = "hOUwie_Hum_COM_100_nosiren_StewartWiens")
+c3func(HumerusSub[fem.tree$tip.label,c("Species","Habitat","Life","Hum_SMA")], fem.tree, models, nSim = 100, path = "hOUwie Files/hOUwie_Hum_SMA_100_nosiren_StewartWiens")
+c3func(HumerusSub[fem.tree$tip.label,c("Species","Habitat","Life","Hum_COM")], fem.tree, models, nSim = 100, path = "hOUwie Files/hOUwie_Hum_COM_100_nosiren_StewartWiens")
 
 # femur
-c3func(FemurSub[,c("Species","Habitat","Life","Fem_SMA")], fem.tree, models, nSim = 100, path = "hOUwie_Fem_SMA_100_StewartWiens")
-c3func(FemurSub[,c("Species","Habitat","Life","Fem_COM")], fem.tree, models, nSim = 100, path = "hOUwie_Fem_COM_100_StewartWiens_redonouse")
+c3func(FemurSub[,c("Species","Habitat","Life","Fem_SMA")], fem.tree, models, nSim = 100, path = "hOUwie Files/hOUwie_Fem_SMA_100_StewartWiens")
+c3func(FemurSub[,c("Species","Habitat","Life","Fem_COM")], fem.tree, models, nSim = 100, path = "hOUwie Files/hOUwie_Fem_COM_100_StewartWiens")
 
 #legend
 # "Aq_bi"  "Aq_pd" "SAq_bi"   "T_bi"   "T_dd" 
 
 # read in one set of models
-folder = "hOUwie_Fem_COM_100_StewartWiens_redonouse"
+folder = "hOUwie Files/hOUwie_Fem_COM_100_StewartWiens_redonouse"
 model_set <- list()
 for (i in list.files(folder, full.names = T)) {
   model_set <- c(model_set,list(readRDS(i)))
